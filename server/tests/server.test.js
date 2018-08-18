@@ -10,7 +10,9 @@ const todos = [{
     text: 'first'
 }, {
     _id: new ObjectID(),
-    text: 'second'
+    text: 'second',
+    completed: true,
+    completedAt: 0
 }];
 
 beforeEach((done) => {
@@ -116,7 +118,10 @@ describe('DELETE /todos/:id', () => {
                 if (err) {
                     return done(err);
                 }
-                expect(Todo.findById(hexId)).toBe({});
+                Todo.findById(hexId).then((todo) => {
+                    expect(todo).toNotExist();
+                });
+                done();
             });
     });
 
@@ -128,7 +133,7 @@ describe('DELETE /todos/:id', () => {
             .delete(`/todos/${mockId}`)
             .expect(404)
             .expect((res) => {
-                expect(res.body.message).toBeTruthy();
+                expect(res.body.message).toBeDefined();
             })
             .end(done);
     });
@@ -142,3 +147,66 @@ describe('DELETE /todos/:id', () => {
             .end(done);
     });
 });
+
+describe('PATCH /todos/:id', () => {
+    it('should update todo', (done) => {
+        let id = todos[0]._id.toHexString();
+        let sPath = `/todos/${id}`;
+        let oBody = {
+            completed: true,
+            text: 'complete'
+        };
+
+        request(app)
+            .patch(sPath)
+            .send(oBody)
+            .expect(200)
+            .expect((res) => {
+                expect(res.body.todo.completed).toBe(true);
+                expect(res.body.todo.text).toBe(oBody.text)
+            })
+            .end((err, res) => {
+                if (err) {
+                    return done(err);
+                }
+                Todo.findById(id).then((todo) => {
+                    expect(todo.completed).toBe(true);
+                    expect(todo.text).toBe(oBody.text);
+                    done();
+                }).catch((err) => {
+                    done();
+                });
+            });
+    });
+
+    it('should clear completedAt when not completed', (done) => {
+        let id = todos[1]._id.toHexString();
+        let sPath = `/todos/${id}`;
+        let oBody = {
+            completed: false,
+            text: 'imcomplete'
+        };
+
+        request(app)
+            .patch(sPath)
+            .send(oBody)
+            .expect(200)
+            .expect((res) => {
+                expect(res.body.todo.completed).toBe(false);
+                expect(res.body.todo.text).toBe(oBody.text);
+            })
+            .end((err, res) => {
+                if (err) {
+                    return done(err);
+                }
+                Todo.findById(id).then((todo) => {
+                    expect(todo.completed).toBe(false);
+                    expect(todo.completedAt).toBe(null);
+                    expect(todo.text).toBe(oBody.text);
+                    done();
+                }).catch((err) => {
+                    done();
+                });
+            });
+    });
+})

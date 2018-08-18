@@ -95,8 +95,9 @@ app.patch('/todos/:id', (req, res) => {
         oBody.completedAt = null;
     }
 
-    console.log(oBody);
-    Todo.findByIdAndUpdate(id, {$set: oBody}, {$new: true}).then((todo) => {
+    Todo.findByIdAndUpdate(id, {$set: oBody}, {
+        new: true
+    }).then((todo) => {
         if (!todo) {
             res.status(404).send({
                 message: `${id} not found`
