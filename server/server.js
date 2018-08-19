@@ -1,14 +1,4 @@
-var env = process.env.NODE_ENV || 'development';
-console.log('env ****', env);
-
-if (env == 'development') {
-    process.env.PORT = 8080;
-    process.env.MONGODB_URI = 'mongodb://localhost:27017/TodoApp';
-} else if (env === 'test') {
-    process.env.PORT = 8080;
-    process.env.MONGODB_URI = 'mongodb://localhost:27017/TodoAppTest';
-
-}
+require('./config/config');
 
 const _ = require('lodash');
 const express = require('express');
@@ -44,7 +34,7 @@ app.get('/todos', (req, res) => {
             todos: todos
         });
     }, (err) => {
-        res.status(400).send(e);
+        res.status(500).send(e);
     });
 });
 
@@ -122,6 +112,32 @@ app.patch('/todos/:id', (req, res) => {
     }).catch((err) => {
         res.status(400).send(err);
     });
+});
+
+app.post('/users', (req, res) => {
+    let sEmail = req.body.email;
+    let sPassword = req.body.password;
+
+    let newUser = new User({
+        email: sEmail,
+        password: sPassword
+    });
+    newUser.save().then((user) => {
+        res.send({
+            message: `User for ${sEmail} successfuly created`,
+            user: user
+        });
+    }).catch((err) => {
+        res.status(400).send(err);
+    });
+});
+
+app.get('/users', (req, res) => {
+    User.find().then((users) => {
+        res.status(200).send({users});
+    }).catch((err) => {
+        res.status(500).send(err)
+    })
 });
 
 app.listen(port, () => {
