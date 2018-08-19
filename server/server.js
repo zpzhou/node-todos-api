@@ -110,7 +110,7 @@ app.patch('/todos/:id', (req, res) => {
             todo: todo
         });
     }).catch((err) => {
-        res.status(400).send(err);
+        res.status(400).send({err});
     });
 });
 
@@ -122,13 +122,17 @@ app.post('/users', (req, res) => {
         email: sEmail,
         password: sPassword
     });
-    newUser.save().then((user) => {
-        res.send({
+    newUser.save().then(() => {
+        return newUser.generateAuthToken();
+    }).then((token) => {
+        res.header('x-auth', token).send({
             message: `User for ${sEmail} successfuly created`,
-            user: user
+            user: newUser,
         });
-    }).catch((err) => {
-        res.status(400).send(err);
+    })
+    .catch((err) => {
+        console.log(err);
+        res.status(400).send({err});
     });
 });
 
