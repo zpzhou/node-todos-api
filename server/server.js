@@ -118,7 +118,7 @@ app.patch('/todos/:id', (req, res) => {
 app.post('/users', (req, res) => {
     let sEmail = req.body.email;
     let sPassword = req.body.password;
-let newUser = new User({
+    let newUser = new User({
         email: sEmail,
         password: sPassword
     });
@@ -131,7 +131,6 @@ let newUser = new User({
         });
     })
     .catch((err) => {
-        console.log(err);
         res.status(400).send({err});
     });
 });

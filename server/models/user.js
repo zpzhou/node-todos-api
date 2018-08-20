@@ -35,7 +35,7 @@ var UserSchema = new mongoose.Schema({
 UserSchema.methods.toJSON = function() {
     let userObject = this.toObject();
     return {
-        id: userObject._id,
+        _id: userObject._id,
         email: userObject.email
     };
 }
@@ -77,7 +77,7 @@ UserSchema.statics.findByToken = function(token) {
 UserSchema.pre('save', function(next) {
     var user = this;
     if (user.isModified('password')) {
-        bcrypt.genSalt(10, (err, salt) => {
+        bcrypt.genSalt(5, (err, salt) => {
             bcrypt.hash(user.password, salt, (err, hash) => {
                 user.password = hash;
                 user.save();
