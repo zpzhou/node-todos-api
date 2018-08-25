@@ -234,7 +234,6 @@ describe('POST /users', () => {
             .send({email, password})
             .expect(200)
             .expect((res) => {
-                console.log(res);
                 expect(res.headers['x-auth']).toBeTruthy();
                 expect(res.body.user._id).toBeTruthy();
                 expect(res.body.user.email).toBe(email);
@@ -294,4 +293,44 @@ describe('POST /users', () => {
                 done();
             });
     });
-})
+});
+
+describe('POST /users/login', () => {
+    it('should log in user and return auth token', (done) => {
+        let user = users[0];
+        request(app)
+            .post('/users/login')
+            .send({
+                email: user.email,
+                password: user.password
+            })
+            .expect(200)
+            .expect((res) => {
+                expect(res.headers['x-auth']).toBeTruthy();
+            })
+            .end((err, res) => {
+                if (err) {
+                    done(err);
+                }
+                User.findById(users[0]._id).then((user) => {
+                    expect(user.tokens[0]).toMatchObject({
+                        access: 'auth',
+                        token: res.headers['x-auth']
+                    });
+                    done();
+                }).catch((e) => done(e));
+            });
+    });
+
+    it('should reject invalid login', (done) => {
+        let user = users[0];
+        request(app)
+            .post('/users/login')
+            .send({
+                email: user.email,
+                password: user.password.slice(1)
+            })
+            .expect(401)
+            .end(done);
+    });
+});
